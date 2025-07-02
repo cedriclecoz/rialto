@@ -61,6 +61,7 @@ ClientController::ClientController(const std::shared_ptr<IControlIpcFactory> &Co
         if (std::strlen(kTags) > 0)
         {
             RIALTO_CLIENT_LOG_MIL("Release Tag(s): %s (Commit ID: %s)", kTags, kSrcRev);
+            RIALTO_CLIENT_LOG_MIL("Test Cedric %d - test %s", std::strlen(kTags))
         }
         else
         {
