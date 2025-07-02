@@ -1,0 +1,61 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential
+          sudo apt-get install cmake
+          sudo apt-get install libunwind-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev libgstreamer1.0-dev
+
+      - name: Install protobuf
+        run: |
+          sudo apt-get install protobuf-compiler
+
+      - name: Detect languages
+        id: detect
+        run: |
+          langs="cpp,python"
+          if find . -name "*.rs" | grep -q .; then
+              langs="$langs,rust"
+          fi
+          echo "languages=$langs" >> $GITHUB_OUTPUT
+          
+      - name: Configure Rialto
+        run: |
+          cmake . -B build -DNATIVE_BUILD=ON -DRIALTO_BUILD_TYPE="Debug"
+          
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ steps.detect.outputs.languages }}
+          queries: +security-and-quality
+          
+      - name: Build Rialto
+        run: |
+          make -C build
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        
